@@ -74,6 +74,14 @@
   width: 100%;
 }
 
+.activeNavLink {
+  color: #FFFFFF !important;
+}
+
+.activeNavLink::after {
+  width: 100% !important;
+}
+
 .authButtons {
   display: flex;
   align-items: center;

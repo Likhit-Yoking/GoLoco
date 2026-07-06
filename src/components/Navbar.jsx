@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Ticket, Menu, X } from 'lucide-react';
 import styles from './Navbar.module.css';
 
-export default function Navbar() {
+export default function Navbar({ currentView, setView }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -18,9 +18,20 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogoClick = () => {
+    setView('landing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigate = (view) => {
+    setView(view);
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <nav className={`${styles.navbar} ${scrolled ? styles.scrolled : ''}`}>
-      <div className={styles.logoContainer} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+      <div className={styles.logoContainer} onClick={handleLogoClick}>
         <span className={styles.logoIcon}>
           <Ticket size={28} strokeWidth={2.5} />
         </span>
@@ -28,10 +39,24 @@ export default function Navbar() {
       </div>
 
       <div className={styles.navLinks}>
-        <a href="#home" className={styles.navLink}>Home</a>
-        <a href="#events" className={styles.navLink}>Upcoming Events</a>
-        <a href="#about" className={styles.navLink}>About Us</a>
-        <a href="#contact" className={styles.navLink}>Contact</a>
+        <button 
+          className={`${styles.navLink} ${currentView === 'landing' ? styles.activeNavLink : ''}`}
+          onClick={() => handleNavigate('landing')}
+        >
+          Home
+        </button>
+        <button 
+          className={`${styles.navLink} ${currentView === 'attendee' ? styles.activeNavLink : ''}`}
+          onClick={() => handleNavigate('attendee')}
+        >
+          Browse Events
+        </button>
+        <button 
+          className={`${styles.navLink} ${currentView === 'organizer' ? styles.activeNavLink : ''}`}
+          onClick={() => handleNavigate('organizer')}
+        >
+          Organizer Portal
+        </button>
       </div>
 
       <div className={styles.authButtons}>
@@ -54,7 +79,7 @@ export default function Navbar() {
           top: '70px',
           left: 0,
           right: 0,
-          background: 'rgba(11, 15, 25, 0.95)',
+          background: 'rgba(11, 15, 25, 0.98)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderBottom: '1px solid var(--glass-border)',
@@ -64,10 +89,48 @@ export default function Navbar() {
           gap: '1.5rem',
           zIndex: 999
         }}>
-          <a href="#home" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 500 }}>Home</a>
-          <a href="#events" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 500 }}>Upcoming Events</a>
-          <a href="#about" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 500 }}>About Us</a>
-          <a href="#contact" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 500 }}>Contact</a>
+          <button 
+            onClick={() => handleNavigate('landing')} 
+            style={{ 
+              color: currentView === 'landing' ? 'var(--accent-purple)' : 'var(--text-primary)', 
+              fontSize: '1.1rem', 
+              fontWeight: 600, 
+              textAlign: 'left',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Home
+          </button>
+          <button 
+            onClick={() => handleNavigate('attendee')} 
+            style={{ 
+              color: currentView === 'attendee' ? 'var(--accent-purple)' : 'var(--text-primary)', 
+              fontSize: '1.1rem', 
+              fontWeight: 600, 
+              textAlign: 'left',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Browse Events
+          </button>
+          <button 
+            onClick={() => handleNavigate('organizer')} 
+            style={{ 
+              color: currentView === 'organizer' ? 'var(--accent-purple)' : 'var(--text-primary)', 
+              fontSize: '1.1rem', 
+              fontWeight: 600, 
+              textAlign: 'left',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            Organizer Portal
+          </button>
           <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '0.5rem 0' }} />
           <button style={{ color: '#fff', padding: '0.8rem', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>Login</button>
           <button style={{ background: 'linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%)', color: '#fff', padding: '0.8rem', borderRadius: 'var(--radius-sm)', fontWeight: 600 }}>Sign Up</button>
