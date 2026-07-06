@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Sparkles, Calendar, Ticket, User, ArrowRight } from 'lucide-react';
 import styles from './Hero.module.css';
 
-export default function Hero() {
+export default function Hero({ setView }) {
   // Animation Variants
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -48,11 +48,11 @@ export default function Hero() {
         </motion.p>
 
         <motion.div className={styles.ctaGroup} variants={itemVariants}>
-          <a href="#events" className={styles.primaryCta}>
+          <button className={styles.primaryCta} onClick={() => setView('attendee')}>
             <Ticket size={20} />
             <span>Browse as Attendee</span>
-          </a>
-          <button className={styles.secondaryCta} onClick={() => alert('Organizer portal coming soon!')}>
+          </button>
+          <button className={styles.secondaryCta} onClick={() => setView('organizer')}>
             <User size={20} />
             <span>Continue as Organiser</span>
             <ArrowRight size={16} />

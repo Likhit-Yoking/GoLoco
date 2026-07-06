@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import EventDiscovery from './components/EventDiscovery';
-import EventList from './components/EventList';
+import LandingView from './components/LandingView';
+import AttendeePortal from './components/AttendeePortal';
+import OrganizerPortal from './components/OrganizerPortal';
 import Footer from './components/Footer';
 import { events } from './data/events';
 import { Ticket, X, CheckCircle, ShieldCheck } from 'lucide-react';
@@ -19,6 +20,12 @@ const initialFilters = {
 };
 
 export default function App() {
+  // Global States
+  const [eventList, setEventList] = useState(events);
+  const [currentView, setCurrentView] = useState('landing'); // 'landing', 'attendee', 'organizer'
+  const [bookedTickets, setBookedTickets] = useState([]);
+  
+  // Attendee Search Filters
   const [filters, setFilters] = useState(initialFilters);
   const [activeChip, setActiveChip] = useState('all');
 
@@ -33,7 +40,6 @@ export default function App() {
     if (value === 'all') {
       setFilters(prev => ({ ...prev, category: 'All Categories' }));
     } else {
-      // Find matching category (case-insensitive)
       const formattedCategory = value.charAt(0).toUpperCase() + value.slice(1);
       setFilters(prev => ({ ...prev, category: formattedCategory }));
     }
@@ -45,12 +51,39 @@ export default function App() {
   };
 
   const handleBookEvent = (event) => {
-    setSelectedEvent(event);
+    // Lookup latest event details from state in case capacity changed
+    const freshEvent = eventList.find(e => e.id === event.id) || event;
+    setSelectedEvent(freshEvent);
     setTicketQuantity(1);
     setBookingConfirmed(false);
   };
 
   const handleConfirmBooking = () => {
+    // 1. Decrement seat capacity in global list
+    setEventList(prevList => prevList.map(e => {
+      if (e.id === selectedEvent.id) {
+        return {
+          ...e,
+          seatsLeft: Math.max(0, e.seatsLeft - ticketQuantity)
+        };
+      }
+      return e;
+    }));
+
+    // 2. Append ticket receipt object to attendee wallet
+    const ticketId = `GOLOCO-${Math.floor(100000 + Math.random() * 900000)}`;
+    const newBooking = {
+      id: ticketId,
+      event: selectedEvent,
+      quantity: ticketQuantity,
+      amount: selectedEvent.price === 'Free' ? 'Free' : `₹${((getNumericPrice(selectedEvent.price) * ticketQuantity) + (selectedEvent.price !== 'Free' ? 49.00 : 0)).toFixed(2)}`,
+      date: selectedEvent.date,
+      time: selectedEvent.time,
+      location: selectedEvent.location
+    };
+    setBookedTickets(prev => [newBooking, ...prev]);
+
+    // 3. Mark modal screen confirmed
     setBookingConfirmed(true);
   };
 
@@ -67,7 +100,7 @@ export default function App() {
 
   // Live filtering and sorting logic
   const filteredAndSortedEvents = useMemo(() => {
-    let result = [...events];
+    let result = [...eventList];
 
     // 1. Filter by Search Query
     if (filters.search.trim()) {
@@ -127,28 +160,29 @@ export default function App() {
 
       switch (filters.sortBy) {
         case 'rating':
-          return b.rating - a.rating; // Highest rated first
+          return b.rating - a.rating;
         case 'price-low':
-          return priceA - priceB; // Lowest price first
+          return priceA - priceB;
         case 'price-high':
-          return priceB - priceA; // Highest price first
+          return priceB - priceA;
         case 'closest':
-          return a.startsInDays - b.startsInDays; // Closest date first
+          return a.startsInDays - b.startsInDays;
         case 'seats':
-          return b.seatsLeft - a.seatsLeft; // Most seats first
+          return b.seatsLeft - a.seatsLeft;
         case 'newest':
-          return b.id - a.id; // Mock newest (latest added to db)
+          return b.id - a.id;
         case 'popular':
         default:
-          return (b.rating * 10 - b.startsInDays) - (a.rating * 10 - a.startsInDays); // Hybrid popular metric
+          return (b.rating * 10 - b.startsInDays) - (a.rating * 10 - a.startsInDays);
       }
     });
 
     return result;
-  }, [filters]);
+  }, [eventList, filters]);
 
   const totalPrice = selectedEvent ? getNumericPrice(selectedEvent.price) * ticketQuantity : 0;
   const bookingFee = selectedEvent && selectedEvent.price !== 'Free' ? 49.00 : 0;
+  const latestSelectedEventInState = selectedEvent ? (eventList.find(e => e.id === selectedEvent.id) || selectedEvent) : null;
 
   return (
     <div className="app-container">
@@ -161,34 +195,76 @@ export default function App() {
       </div>
 
       {/* Navigation */}
-      <Navbar />
+      <Navbar currentView={currentView} setView={setCurrentView} />
 
-      {/* Main Content */}
-      <main style={{ marginTop: '80px' }}>
-        <Hero />
-        
-        {/* Sticky filter & discovery panel */}
-        <EventDiscovery 
-          filters={filters} 
-          setFilters={setFilters} 
-          onReset={handleResetFilters}
-        />
+      {/* Main Content with dynamic transitions */}
+      <main style={{ marginTop: '80px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <AnimatePresence mode="wait">
+          {currentView === 'landing' && (
+            <motion.div
+              key="landing"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: '100%' }}
+            >
+              <LandingView 
+                eventList={eventList} 
+                setView={setCurrentView} 
+                onBookEvent={handleBookEvent} 
+              />
+            </motion.div>
+          )}
 
-        <EventList 
-          filteredEvents={filteredAndSortedEvents} 
-          onBookEvent={handleBookEvent}
-          activeChip={activeChip}
-          setActiveChip={handleSetActiveChip}
-          sortBy={filters.sortBy}
-          setSortBy={(val) => setFilters(prev => ({ ...prev, sortBy: val }))}
-        />
+          {currentView === 'attendee' && (
+            <motion.div
+              key="attendee"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: '100%' }}
+            >
+              <AttendeePortal
+                eventList={eventList}
+                filters={filters}
+                setFilters={setFilters}
+                onResetFilters={handleResetFilters}
+                filteredEvents={filteredAndSortedEvents}
+                onBookEvent={handleBookEvent}
+                activeChip={activeChip}
+                setActiveChip={handleSetActiveChip}
+                bookedTickets={bookedTickets}
+                setView={setCurrentView}
+              />
+            </motion.div>
+          )}
+
+          {currentView === 'organizer' && (
+            <motion.div
+              key="organizer"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              style={{ width: '100%' }}
+            >
+              <OrganizerPortal
+                eventList={eventList}
+                setEventList={setEventList}
+                bookedTickets={bookedTickets}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Footer */}
       <Footer />
 
       {/* Booking Drawer/Modal */}
-      {selectedEvent && (
+      {selectedEvent && latestSelectedEventInState && (
         <div className="modal-overlay">
           <div className="modal-content glass-card">
             <button className="modal-close" onClick={closeModal} aria-label="Close modal">
@@ -231,8 +307,8 @@ export default function App() {
                       </button>
                       <span className="qty-number">{ticketQuantity}</span>
                       <button 
-                        onClick={() => setTicketQuantity(Math.min(selectedEvent.seatsLeft, ticketQuantity + 1))}
-                        disabled={ticketQuantity >= selectedEvent.seatsLeft}
+                        onClick={() => setTicketQuantity(Math.min(latestSelectedEventInState.seatsLeft, ticketQuantity + 1))}
+                        disabled={ticketQuantity >= latestSelectedEventInState.seatsLeft}
                       >
                         +
                       </button>
@@ -259,10 +335,10 @@ export default function App() {
                 <button 
                   className="confirm-btn" 
                   onClick={handleConfirmBooking}
-                  disabled={selectedEvent.seatsLeft <= 0}
-                  style={{ opacity: selectedEvent.seatsLeft <= 0 ? 0.5 : 1 }}
+                  disabled={latestSelectedEventInState.seatsLeft <= 0}
+                  style={{ opacity: latestSelectedEventInState.seatsLeft <= 0 ? 0.5 : 1 }}
                 >
-                  {selectedEvent.seatsLeft <= 0 ? 'Sold Out' : 'Confirm & Pay Now'}
+                  {latestSelectedEventInState.seatsLeft <= 0 ? 'Sold Out' : 'Confirm & Pay Now'}
                 </button>
                 <div className="secure-checkout">
                   <ShieldCheck size={14} />
@@ -296,7 +372,6 @@ export default function App() {
                   </div>
 
                   <div className="qr-container">
-                    {/* Mock QR Code representation */}
                     <div className="qr-code">
                       <div className="qr-corner qr-tl"></div>
                       <div className="qr-corner qr-tr"></div>
@@ -306,7 +381,7 @@ export default function App() {
                       <div className="qr-dot dot-3"></div>
                       <div className="qr-dot dot-4"></div>
                     </div>
-                    <span className="qr-label">TICKET ID: GOLOCO-{Math.floor(100000 + Math.random() * 900000)}</span>
+                    <span className="qr-label">TICKET ID: {bookedTickets[0]?.id || `GOLOCO-${Math.floor(100000 + Math.random() * 900000)}`}</span>
                   </div>
                 </div>
 
@@ -321,3 +396,4 @@ export default function App() {
     </div>
   );
 }
+

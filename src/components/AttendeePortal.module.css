@@ -1,0 +1,433 @@
+.portalContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 4rem 4rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* Header Banner */
+.portalHeader {
+  position: relative;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-lg);
+  padding: 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.headerGlow {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.headerContent {
+  position: relative;
+  z-index: 1;
+  text-align: left;
+  max-width: 60%;
+}
+
+.headerContent h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0.5rem 0;
+  background: linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.headerContent p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.badge {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60A5FA;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.headerIllustration {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.miniCard1, .miniCard2 {
+  background: rgba(19, 26, 46, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 120px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+}
+
+.miniIcon {
+  color: var(--accent-purple);
+}
+
+.miniCard2 .miniIcon {
+  color: var(--accent-blue);
+}
+
+/* Floating Wallet Trigger */
+.walletTrigger {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 999;
+  background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 1rem 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.5);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.pulseGlow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 9999px;
+  border: 2px solid var(--accent-purple);
+  animation: pulse-ring 2s infinite ease-out;
+  pointer-events: none;
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+.walletCount {
+  background: #FFFFFF;
+  color: var(--accent-purple);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* Sliding Ticket Wallet Drawer Overlay */
+.drawerOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(5, 7, 12, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1050;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.drawerContent {
+  width: 480px;
+  max-width: 100%;
+  height: 100vh;
+  border-left: 1px solid var(--glass-border);
+  background: rgba(19, 26, 46, 0.95);
+  backdrop-filter: blur(30px);
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.6);
+  z-index: 1060;
+  overflow-y: auto;
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.drawerHeader h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FFFFFF 0%, #A78BFA 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.drawerHeaderIcon {
+  color: var(--accent-purple);
+}
+
+.closeBtn {
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.closeBtn:hover {
+  color: #FFFFFF;
+}
+
+.walletInfo {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.8rem;
+  color: #93C5FD;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.ticketsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.25rem;
+}
+
+/* Individual Ticket Card inside Drawer */
+.ticketCard {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.ticketCard:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.focusedTicketCard {
+  border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.1);
+  background: rgba(124, 58, 237, 0.02);
+}
+
+.ticketMain {
+  display: flex;
+  gap: 1rem;
+  text-align: left;
+}
+
+.ticketImg {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ticketDetails {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ticketDetails h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  line-height: 1.3;
+}
+
+.ticketMeta {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.ticketMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.ticketQtyRow {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 1rem;
+}
+
+.ticketQtyRow strong {
+  color: #FFFFFF;
+}
+
+.ticketActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 0.75rem;
+}
+
+.viewPassBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  padding: 0.35rem 0.75rem;
+  background: rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba(124, 58, 237, 0.2);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.viewPassBtn:hover {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.4);
+}
+
+.ticketId {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* Expandable QR Code Area */
+.qrExpandArea {
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.qrWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  padding: 1.25rem;
+  border-radius: var(--radius-sm);
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.qrCodeGraphic {
+  width: 90px;
+  height: 90px;
+  background: #FFFFFF;
+  border-radius: 4px;
+  position: relative;
+  padding: 6px;
+}
+
+.qrCornerInside {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: #0B0F19;
+  border: 5px solid #0B0F19;
+}
+
+.qrTl { top: 6px; left: 6px; border-right: none; border-bottom: none; box-shadow: -2px -2px 0 2px #131A2E; }
+.qrTr { top: 6px; right: 6px; border-left: none; border-bottom: none; box-shadow: 2px -2px 0 2px #131A2E; }
+.qrBl { bottom: 6px; left: 6px; border-right: none; border-top: none; box-shadow: -2px 2px 0 2px #131A2E; }
+
+.qrDotInside {
+  position: absolute;
+  background: #131A2E;
+  border-radius: 2px;
+}
+
+.dot1 { top: 32px; left: 32px; width: 10px; height: 10px; }
+.dot2 { top: 52px; left: 52px; width: 14px; height: 14px; }
+.dot3 { top: 32px; right: 20px; width: 8px; height: 8px; }
+.dot4 { bottom: 20px; left: 32px; width: 10px; height: 6px; }
+
+.qrCodeId {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  margin-top: 0.25rem;
+}
+
+.qrScanText {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Responsiveness */
+@media (max-width: 1024px) {
+  .portalContainer {
+    padding: 100px 2rem 2rem 2rem;
+  }
+  .portalHeader {
+    padding: 2rem;
+  }
+  .headerContent {
+    max-width: 100%;
+  }
+  .headerIllustration {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .portalHeader h1 {
+    font-size: 2rem;
+  }
+  .drawerContent {
+    width: 100%;
+  }
+}
