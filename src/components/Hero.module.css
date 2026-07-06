@@ -1,9 +1,9 @@
 .heroContainer {
-  min-height: 100vh;
+  min-height: 90vh;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 80px 4rem 20px 4rem;
+  padding: 10px 4rem 20px 4rem;
   gap: 4rem;
   max-width: 1400px;
   margin: 0 auto;

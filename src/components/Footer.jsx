@@ -11,7 +11,7 @@ export default function Footer() {
             <span className={styles.logoIcon}>
               <Ticket size={28} strokeWidth={2.5} />
             </span>
-            <span>GoLoco</span>
+            <span>GoLoco!</span>
           </div>
           <p className={styles.tagline}>
             Connecting you to local experiences, premium conferences, electrifying concerts, and culinary festivals in seconds.

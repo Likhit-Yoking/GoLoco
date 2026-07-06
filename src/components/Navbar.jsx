@@ -24,7 +24,7 @@ export default function Navbar() {
         <span className={styles.logoIcon}>
           <Ticket size={28} strokeWidth={2.5} />
         </span>
-        <span>GoLoco</span>
+        <span>GoLoco!</span>
       </div>
 
       <div className={styles.navLinks}>
