@@ -1,0 +1,39 @@
+# Logs
+*.log
+
+# Operating System files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.vs/
+.idea/
+
+# Frontend
+node_modules/
+dist/
+.env
+.env.production.local
+.env.local
+
+# Backend
+bin/
+obj/
+appsettings.Development.json
+*.user
+secrets.json
+
+# Explicitly do NOT ignore
+!README.md
+!appsettings.json
+!package.json
+!package-lock.json
+!*.csproj
+!*.sln
+!Program.cs
+!Controllers/
+!Models/
+!Services/
+!Repositories/
+!Migrations/
