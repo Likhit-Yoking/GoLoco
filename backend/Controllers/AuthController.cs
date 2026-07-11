@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OnlineEventTicketManagement.DTOs;
@@ -23,9 +24,13 @@ namespace OnlineEventTicketManagement.Controllers
             }
 
             var response = await _authService.RegisterAsync(registerDto);
+
             if (response == null)
             {
-                return BadRequest(new { message = "Email is already in use or registration failed." });
+                return BadRequest(new
+                {
+                    message = "Email is already in use or registration failed."
+                });
             }
 
             return Ok(response);
@@ -39,14 +44,16 @@ namespace OnlineEventTicketManagement.Controllers
                 return BadRequest(ModelState);
             }
 
-            }
             try
             {
                 var response = await _authService.LoginAsync(loginDto);
 
                 if (response == null)
                 {
-                    return Unauthorized(new { message = "Invalid email or password." });
+                    return Unauthorized(new
+                    {
+                        message = "Invalid email or password."
+                    });
                 }
 
                 return Ok(response);
@@ -56,16 +63,10 @@ namespace OnlineEventTicketManagement.Controllers
                 return StatusCode(500, new
                 {
                     Error = ex.Message,
-                    Inner = ex.InnerException?.Message,
-                    Stack = ex.StackTrace
+                    InnerException = ex.InnerException?.Message,
+                    StackTrace = ex.StackTrace
                 });
             }
-            if (response == null)
-            {
-                return Unauthorized(new { message = "Invalid email or password." });
-            }
-
-            return Ok(response);
         }
     }
 }
