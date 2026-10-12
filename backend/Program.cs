@@ -92,7 +92,21 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+// Image storage: "S3" or "Azure" (default: Azure, the current behaviour)
+var storageProvider = builder.Configuration["Storage:Provider"] ?? "Azure";
+if (string.Equals(storageProvider, "S3", StringComparison.OrdinalIgnoreCase))
+{
+    // Uses the default AWS credential chain (aws configure locally, IAM role in AWS)
+    builder.Services.AddSingleton<Amazon.S3.IAmazonS3>(_ =>
+        new Amazon.S3.AmazonS3Client(Amazon.RegionEndpoint.GetBySystemName(
+            builder.Configuration["AwsS3:Region"]
+                ?? throw new InvalidOperationException("AwsS3:Region is not configured."))));
+    builder.Services.AddScoped<IBlobStorageService, S3StorageService>();
+}
+else
+{
+    builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+}
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
@@ -168,6 +182,9 @@ app.UseCors("ReactPolicy");
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+// Liveness check for load balancers: no auth, no database access
+app.MapGet("/health", () => Results.Ok());
 
 app.MapControllers();
 
