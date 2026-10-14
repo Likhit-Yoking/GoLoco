@@ -12,7 +12,7 @@ import { parseJwt } from '../utils/jwtHelper';
 import OrganizerEventRow from './organizer/OrganizerEventRow';
 import EditEventModal from './organizer/EditEventModal';
 import bookingService from '../services/bookingService';
-import { mapEventDtos } from '../utils/eventMapper';
+import { mapEventDtos, IMAGE_PRESETS, presetKeyForCategory, CATEGORY_OPTIONS } from '../utils/eventMapper';
 
 const LOCATION_OPTIONS = [
   { value: 'Mumbai',    label: 'Mumbai' },
@@ -22,17 +22,6 @@ const LOCATION_OPTIONS = [
   { value: 'Pune',      label: 'Pune' },
   { value: 'Chennai',   label: 'Chennai' },
   { value: 'Remote',    label: 'Online (Remote)' },
-];
-
-const CATEGORY_OPTIONS = [
-  { value: 'Music', label: 'Music' },
-  { value: 'Tech', label: 'Tech' },
-  { value: 'Food', label: 'Food' },
-  { value: 'Sports', label: 'Sports' },
-  { value: 'Workshop', label: 'Workshop' },
-  { value: 'Comedy', label: 'Comedy' },
-  { value: 'Festival', label: 'Festival' },
-  { value: 'Education', label: 'Education' }
 ];
 
 const selectStyles = {
@@ -188,15 +177,8 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Image Presets mapping
-  const presets = {
-    music: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&q=80&w=800",
-    tech: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=800",
-    food: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=800",
-    sports: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&q=80&w=800",
-    comedy: "https://images.unsplash.com/photo-1585699324551-f6c309eed262?auto=format&fit=crop&q=80&w=800",
-    workshop: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&q=80&w=800"
-  };
+  // Image presets are shared with the event mapper
+  const presets = IMAGE_PRESETS;
 
   // Analytics driven from the live myEvents list and actual database bookings
   const metrics = React.useMemo(() => {
@@ -271,6 +253,7 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
     formData.append('Date', new Date(date).toISOString());
     formData.append('Location', location);
     formData.append('TotalCapacity', totalCapacity);
+    if (category) formData.append('Category', category);
     
     parsedTicketTypes.forEach((tt, index) => {
       formData.append(`TicketTypes[${index}].Name`, tt.name);
@@ -468,7 +451,14 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
                   inputId="category"
                   options={CATEGORY_OPTIONS}
                   value={CATEGORY_OPTIONS.find(opt => opt.value === category) ?? null}
-                  onChange={(selected) => setCategory(selected?.value ?? '')}
+                  onChange={(selected) => {
+                    const value = selected?.value ?? '';
+                    setCategory(value);
+                    // Keep the poster preview in step with the category (presets are never sent to the server)
+                    if (value && !imageFile && customImage.trim() === '') {
+                      setImagePreset(presetKeyForCategory(value));
+                    }
+                  }}
                   isSearchable={false}
                   styles={selectStyles}
                   menuPortalTarget={document.body}
