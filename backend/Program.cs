@@ -107,6 +107,20 @@ else
 {
     builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 }
+// Email: Amazon SES when Email:SenderAddress is set, otherwise a no-op that only logs
+var emailSender = builder.Configuration["Email:SenderAddress"];
+if (!string.IsNullOrWhiteSpace(emailSender))
+{
+    // Uses the default AWS credential chain (aws configure locally, IAM role in AWS)
+    builder.Services.AddSingleton<Amazon.SimpleEmailV2.IAmazonSimpleEmailServiceV2>(_ =>
+        new Amazon.SimpleEmailV2.AmazonSimpleEmailServiceV2Client(Amazon.RegionEndpoint.GetBySystemName(
+            builder.Configuration["Email:Region"] is { Length: > 0 } emailRegion ? emailRegion : "ap-south-1")));
+    builder.Services.AddSingleton<IEmailService, SesEmailService>();
+}
+else
+{
+    builder.Services.AddSingleton<IEmailService, NoOpEmailService>();
+}
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
@@ -150,6 +164,19 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Report once at startup whether emails will actually be sent
+if (string.IsNullOrWhiteSpace(emailSender))
+{
+    app.Logger.LogInformation("Email: DISABLED (Email:SenderAddress is not set). Emails will only be logged.");
+}
+else
+{
+    app.Logger.LogInformation(
+        "Email: ENABLED via Amazon SES (sender {Sender}, region {Region}).",
+        emailSender,
+        string.IsNullOrWhiteSpace(builder.Configuration["Email:Region"]) ? "ap-south-1" : builder.Configuration["Email:Region"]);
+}
 
 // Enable Swagger
 bool enableSwagger =

@@ -174,7 +174,7 @@ export default function App() {
         seatNumbers: Array.from(selectedSeats)
       });
 
-      // 2. Refresh the global events list to sync available tickets from Azure SQL
+      // 2. Refresh the global events list to sync available tickets from the database
       const dtos = await eventService.getAllEvents();
       setEventList(mapEventDtos(dtos));
 

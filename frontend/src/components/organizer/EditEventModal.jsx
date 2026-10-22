@@ -163,7 +163,7 @@ export default function EditEventModal({ event, onClose, onSaved }) {
             <div>
               <h2 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700, color: '#fff' }}>Edit Event</h2>
               <p style={{ margin: '0.3rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-                ID #{event.id} · Changes are saved to Azure SQL via PUT /api/events/{event.id}
+                ID #{event.id} · Changes are saved via PUT /api/events/{event.id}
               </p>
             </div>
             <button

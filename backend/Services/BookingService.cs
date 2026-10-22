@@ -19,10 +19,13 @@ namespace OnlineEventTicketManagement.Services
         private readonly IBookingRepository _bookingRepository;
         private readonly IEventRepository _eventRepository;
 
-        public BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository)
+        private readonly IEmailService _emailService;
+
+        public BookingService(IBookingRepository bookingRepository, IEventRepository eventRepository, IEmailService emailService)
         {
             _bookingRepository = bookingRepository;
             _eventRepository = eventRepository;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -142,7 +145,15 @@ namespace OnlineEventTicketManagement.Services
 
             // 9. Re-fetch with all navigation details for DTO representation
             var savedBooking = await _bookingRepository.GetByIdWithDetailsAsync(booking.Id);
-            return MapToDto(savedBooking!);
+            var bookingDto = MapToDto(savedBooking!);
+
+            // Confirmation email: not awaited and never throws, so it cannot delay or fail the booking
+            if (!string.IsNullOrWhiteSpace(savedBooking!.User?.Email))
+            {
+                _ = _emailService.SendBookingConfirmationAsync(bookingDto, savedBooking.User.Email);
+            }
+
+            return bookingDto;
         }
 
         /// <summary>
