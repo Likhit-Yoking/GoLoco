@@ -70,6 +70,15 @@ export default function Navbar() {
           </button>
         )}
 
+        {isAuthenticated && user?.role === 'Organizer' && (
+          <button
+            className={`${styles.navLink} ${location.pathname === '/organizer/check-in' ? styles.activeNavLink : ''}`}
+            onClick={() => handleNavigate('/organizer/check-in')}
+          >
+            Check-in
+          </button>
+        )}
+
         {isAuthenticated && user?.role === 'Attendee' && (
           <button 
             className={`${styles.navLink} ${location.pathname === '/bookings' ? styles.activeNavLink : ''}`}

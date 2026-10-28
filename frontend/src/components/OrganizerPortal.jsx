@@ -184,11 +184,17 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
   const metrics = React.useMemo(() => {
     let dbRevenue = 0;
     let dbTicketsCount = 0;
+    let checkedInTickets = 0;
+    let checkedInBookings = 0;
     
     // 1. Calculate totals from the database bookings
     organizerBookings.forEach(booking => {
       dbTicketsCount += (booking.numberOfTickets || 0);
       dbRevenue += (booking.totalPrice || 0);
+      if (booking.checkedInAt) {
+        checkedInTickets += (booking.numberOfTickets || 0);
+        checkedInBookings += 1;
+      }
     });
 
     // 2. Add local state bookings (for optimistic UI updates during the current session)
@@ -208,6 +214,10 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
     return {
       listedEvents: totalListedEvents,
       ticketsSold: dbTicketsCount + localTicketsCount,
+      dbTicketsCount,
+      checkedInTickets,
+      checkedInBookings,
+      totalBookings: organizerBookings.length,
       revenue: dbRevenue + localRevenue,
       avgRating,
     };
@@ -390,6 +400,9 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
           </div>
           <div className={styles.metricValue}>{metrics.ticketsSold.toLocaleString('en-IN')}</div>
           <div className={styles.metricSubtext}>+ {bookedTickets.reduce((a,c)=>a+c.quantity, 0)} sold this session</div>
+          <div className={styles.metricSubtext}>
+            Checked in: {metrics.checkedInTickets} of {metrics.dbTicketsCount} tickets ({metrics.checkedInBookings} of {metrics.totalBookings} bookings)
+          </div>
         </div>
 
         <div className={`${styles.metricCard} glass-card`}>

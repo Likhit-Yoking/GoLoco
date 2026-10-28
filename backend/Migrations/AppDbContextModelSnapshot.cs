@@ -33,6 +33,12 @@ namespace OnlineEventTicketManagement.Migrations
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("CheckedInByUserId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -46,6 +52,10 @@ namespace OnlineEventTicketManagement.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("TicketCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<int>("TicketTypeId")
                         .HasColumnType("int");
@@ -62,6 +72,10 @@ namespace OnlineEventTicketManagement.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("TicketCode")
+                        .IsUnique()
+                        .HasFilter("[TicketCode] IS NOT NULL");
 
                     b.HasIndex("TicketTypeId");
 
