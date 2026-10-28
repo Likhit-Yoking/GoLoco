@@ -102,10 +102,13 @@ if (string.Equals(storageProvider, "S3", StringComparison.OrdinalIgnoreCase))
             builder.Configuration["AwsS3:Region"]
                 ?? throw new InvalidOperationException("AwsS3:Region is not configured."))));
     builder.Services.AddScoped<IBlobStorageService, S3StorageService>();
+    // Ticket QR images (qr/{code}.png) are created and linked in emails only with S3 storage
+    builder.Services.AddSingleton<ITicketQrService, S3TicketQrService>();
 }
 else
 {
     builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
+    builder.Services.AddSingleton<ITicketQrService, NoOpTicketQrService>();
 }
 // Email: Amazon SES when Email:SenderAddress is set, otherwise a no-op that only logs
 var emailSender = builder.Configuration["Email:SenderAddress"];

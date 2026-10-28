@@ -33,7 +33,7 @@ namespace OnlineEventTicketManagement.Services
             return new EmailBody(subject, html, text);
         }
 
-        public static EmailBody BookingConfirmation(BookingDto b)
+        public static EmailBody BookingConfirmation(BookingDto b, string? qrUrl = null)
         {
             string date = b.EventDate.ToString("ddd, dd MMM yyyy, HH:mm", CultureInfo.InvariantCulture);
             string total = "₹" + b.TotalPrice.ToString("N2", CultureInfo.InvariantCulture);
@@ -53,13 +53,17 @@ namespace OnlineEventTicketManagement.Services
                 Row("Total", H(total)) +
                 Row("Booking ID", "#" + b.Id.ToString(CultureInfo.InvariantCulture)) +
                 "</table>" +
+                (qrUrl == null ? "" :
+                    "<p style=\"margin:20px 0\"><a href=\"" + H(qrUrl) + "\" style=\"background:#6c47ff;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:bold\">View your ticket QR</a></p>") +
                 "<p>You can view your tickets any time under My Bookings.</p>");
 
             string text =
                 $"Hi {b.UserName},\n\nYour booking is confirmed.\n\n" +
                 $"Event: {b.EventTitle}\nDate: {date}\nLocation: {b.EventLocation}\n" +
                 $"Ticket type: {b.TicketTypeName}\nTickets: {b.NumberOfTickets}\nSeats: {seats}\n" +
-                $"Total: {total}\nBooking ID: #{b.Id}\n\nYou can view your tickets any time under My Bookings.\n";
+                $"Total: {total}\nBooking ID: #{b.Id}\n\n" +
+                (qrUrl == null ? "" : $"View your ticket QR: {qrUrl}\n\n") +
+                "You can view your tickets any time under My Bookings.\n";
             return new EmailBody(subject, html, text);
         }
 

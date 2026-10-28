@@ -1,15 +1,18 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, Loader2, ScanLine } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, lazy, Suspense } from 'react';
+import { CheckCircle2, XCircle, AlertTriangle, Loader2, ScanLine, Camera, CameraOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { parseJwt } from '../utils/jwtHelper';
 import eventService from '../services/eventService';
 import bookingService from '../services/bookingService';
 
+// The scanner library and its decoder load only when this page is opened
+const QrScanner = lazy(() => import('../components/organizer/QrScanner'));
+
 /**
  * Organizer check-in page (Organizer-only route).
  * The organizer types or pastes the code from an attendee's ticket QR and the backend
  * (POST /api/bookings/check-in) answers: admitted, already used, invalid, wrong event, cancelled.
- * Camera scanning is added in a later step.
+ * The organizer can also scan the QR with the device camera; the manual box always works as a fallback.
  */
 
 const OUTCOMES = {
@@ -19,6 +22,20 @@ const OUTCOMES = {
   Cancelled:   { color: '#f87171', bg: 'rgba(239, 68, 68, 0.15)',  Icon: XCircle,       title: 'CANCELLED' },
   Invalid:     { color: '#f87171', bg: 'rgba(239, 68, 68, 0.15)',  Icon: XCircle,       title: 'INVALID' },
 };
+
+// Clear, non-technical messages for each way the camera can fail
+const CAMERA_MESSAGES = {
+  'permission-denied': 'Camera access was blocked. Allow the camera for this site in your browser settings, then try again. You can still type the ticket code below.',
+  'no-camera': 'No camera was found on this device. Type the ticket code below instead.',
+  'insecure-context': 'The camera only works on secure (HTTPS) pages, and this page is not secure. Open the site over HTTPS, or type the ticket code below.',
+  'in-use': 'The camera is being used by another app or tab. Close it and try again, or type the ticket code below.',
+  'unsupported': 'This browser cannot scan with the camera. Type the ticket code below instead.',
+};
+const cameraMessage = (kind) =>
+  CAMERA_MESSAGES[kind] || 'The camera could not be started. Type the ticket code below instead.';
+
+// Same code scanned again within this window is ignored (the camera sees one QR many times)
+const RESCAN_BLOCK_MS = 3000;
 
 const formatDateTime = (iso) => {
   if (!iso) return '';
@@ -37,6 +54,19 @@ export default function CheckIn() {
   const [outcome, setOutcome] = useState(null);
   const [error, setError] = useState('');
   const [history, setHistory] = useState([]);
+
+  // Camera scanning state
+  const [scanning, setScanning] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const lastScanRef = useRef({ code: '', at: 0 });
+
+  // The camera needs a secure page (HTTPS or localhost) and a browser that supports it
+  const cameraUnavailableKind = useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    if (!window.isSecureContext) return 'insecure-context';
+    if (!navigator.mediaDevices?.getUserMedia) return 'unsupported';
+    return null;
+  }, []);
 
   const organizerId = useMemo(() => {
     if (!token) return null;
@@ -62,9 +92,9 @@ export default function CheckIn() {
     return () => { cancelled = true; };
   }, [organizerId]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const trimmed = code.trim();
+  // Shared by the manual box and the camera scanner
+  const submitCode = useCallback(async (rawCode) => {
+    const trimmed = (rawCode || '').trim();
     if (!trimmed || submitting) return;
 
     setSubmitting(true);
@@ -81,8 +111,31 @@ export default function CheckIn() {
       else setError(err.message || 'Could not check the ticket. Please try again.');
     } finally {
       setSubmitting(false);
-      inputRef.current?.focus();
     }
+  }, [eventId, submitting]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await submitCode(code);
+    inputRef.current?.focus();
+  };
+
+  const handleScannedCode = useCallback((scanned) => {
+    const now = Date.now();
+    const last = lastScanRef.current;
+    if (scanned === last.code && now - last.at < RESCAN_BLOCK_MS) return;
+    lastScanRef.current = { code: scanned, at: now };
+    submitCode(scanned);
+  }, [submitCode]);
+
+  const handleCameraError = useCallback(({ kind }) => {
+    setScanning(false);
+    setCameraError(cameraMessage(kind));
+  }, []);
+
+  const startCamera = () => {
+    setCameraError(cameraUnavailableKind ? cameraMessage(cameraUnavailableKind) : '');
+    if (!cameraUnavailableKind) setScanning(true);
   };
 
   const view = outcome ? (OUTCOMES[outcome.result] || OUTCOMES.Invalid) : null;
@@ -96,6 +149,37 @@ export default function CheckIn() {
       <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
         Enter the code from the attendee's ticket QR. Each ticket admits everyone on the booking, once.
       </p>
+
+      {/* Camera scanner (the manual box below always works too) */}
+      <div className="glass-card" style={{ padding: '1.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+        {scanning ? (
+          <>
+            <Suspense fallback={<div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Starting camera...</div>}>
+              <QrScanner onCode={handleScannedCode} onCameraError={handleCameraError} paused={submitting} />
+            </Suspense>
+            <button
+              type="button"
+              onClick={() => setScanning(false)}
+              style={{ padding: '0.7rem', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', color: '#fff', borderRadius: '0.6rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            >
+              <CameraOff size={18} /> Stop camera
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={startCamera}
+            style={{ padding: '0.85rem', border: 'none', cursor: 'pointer', background: 'var(--accent-purple)', color: '#fff', borderRadius: '0.6rem', fontWeight: 700, fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+          >
+            <Camera size={18} /> Scan with camera
+          </button>
+        )}
+        {cameraError && (
+          <div role="alert" style={{ padding: '0.8rem 1rem', borderRadius: '0.6rem', background: 'rgba(245, 158, 11, 0.15)', color: '#FBBF24', fontSize: '0.9rem' }}>
+            {cameraError}
+          </div>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="glass-card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
         <label style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>

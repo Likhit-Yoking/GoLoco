@@ -21,15 +21,18 @@ namespace OnlineEventTicketManagement.Services
         private static readonly TimeSpan SendTimeout = TimeSpan.FromSeconds(10);
 
         private readonly IAmazonSimpleEmailServiceV2 _ses;
+        private readonly ITicketQrService _ticketQr;
         private readonly ILogger<SesEmailService> _logger;
         private readonly string _from;
 
         public SesEmailService(
             IAmazonSimpleEmailServiceV2 ses,
+            ITicketQrService ticketQr,
             IConfiguration configuration,
             ILogger<SesEmailService> logger)
         {
             _ses = ses;
+            _ticketQr = ticketQr;
             _logger = logger;
 
             string address = configuration["Email:SenderAddress"]
@@ -53,7 +56,13 @@ namespace OnlineEventTicketManagement.Services
         {
             try
             {
-                await SendAsync(toEmail, EmailTemplates.BookingConfirmation(booking));
+                // Runs in the caller's fire-and-forget task and uses plain values only (a DTO and strings).
+                // The QR service never throws; if the upload fails the link is null and the email is sent without it.
+                string? qrUrl = string.IsNullOrEmpty(booking.TicketCode)
+                    ? null
+                    : await _ticketQr.CreateQrLinkAsync(booking.TicketCode);
+
+                await SendAsync(toEmail, EmailTemplates.BookingConfirmation(booking, qrUrl));
             }
             catch (Exception ex)
             {
