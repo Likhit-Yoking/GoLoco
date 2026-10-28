@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Select from 'react-select';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   PlusCircle, BarChart3, Users, DollarSign, Star, Calendar, MapPin, 
-  Trash2, CheckCircle2, AlertCircle, Image as ImageIcon, Loader2, RefreshCw, Ticket
+  Trash2, CheckCircle2, AlertCircle, Image as ImageIcon, Loader2, RefreshCw, Ticket, ScanLine
 } from 'lucide-react';
 import styles from './OrganizerPortal.module.css';
 import eventService from '../services/eventService';
@@ -70,6 +71,7 @@ const selectStyles = {
 
 export default function OrganizerPortal({ eventList: initialEventList, setEventList: setParentEventList, bookedTickets }) {
   const { token } = useAuth();
+  const navigate = useNavigate();
 
   // ─── Own event list fetched from backend ──────────────────────────────────
   // We maintain local state here (not relying on App.jsx's shared eventList)
@@ -379,6 +381,18 @@ export default function OrganizerPortal({ eventList: initialEventList, setEventL
           <span className={styles.badge}><BarChart3 size={12} /> HOST CONTROL CENTER</span>
           <h1>Organizer Dashboard</h1>
           <p>Monitor event performance, oversee attendee registration lists, and publish new experiences to the platform.</p>
+          <button
+            type="button"
+            onClick={() => navigate('/organizer/check-in')}
+            style={{
+              marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.25rem', border: 'none', borderRadius: '0.6rem', cursor: 'pointer',
+              background: 'linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%)',
+              color: '#fff', fontWeight: 700, fontSize: '1rem'
+            }}
+          >
+            <ScanLine size={18} /> Open Check-in
+          </button>
         </div>
       </div>
 
